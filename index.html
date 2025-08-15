@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Viaje de Autodescubrimiento Interactivo</title>
+    
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+
+    <style>
+        :root {
+            --color-bg: #f0f4f8;
+            --color-card-bg: rgba(255, 255, 255, 0.85);
+            --color-text-primary: #333;
+            --color-text-secondary: #555;
+            --color-border: #ccc;
+            --color-input-bg: rgba(240, 245, 250, 0.7);
+            --color-accent: rgba(100, 120, 200, 0.8);
+            --color-accent-hover: rgba(100, 120, 200, 1);
+            --color-accent-light: rgba(200, 220, 240, 0.7);
+            --color-disabled: #ccc;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: var(--color-bg);
+            background-image: url('https://www.transparenttextures.com/patterns/subtle-white-feathers.png');
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem 0;
+            box-sizing: border-box;
+        }
+
+        .app-container {
+            background: var(--color-card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            width: 90%;
+            max-width: 700px;
+            min-height: 500px;
+            padding: 2rem;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .title {
+            color: var(--color-text-primary);
+            text-align: center;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: var(--color-text-secondary);
+            text-align: left;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+        }
+
+        .styled-textarea, .styled-input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--color-border);
+            font-size: 1rem;
+            font-family: inherit;
+            box-sizing: border-box;
+            background-color: var(--color-input-bg);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        
+        .styled-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .styled-textarea:focus, .styled-input:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            box-shadow: 0 0 5px var(--color-accent-light);
+        }
+
+        .char-counter {
+            text-align: right;
+            font-size: 0.8rem;
+            color: #888;
+            margin: 0.2rem 0 0 0;
+        }
+
+        .button {
+            display: block;
+            width: fit-content;
+            min-width: 150px;
+            padding: 12px 24px;
+            margin: 2rem auto 0;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            background-color: var(--color-accent);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .button:hover {
+            background-color: var(--color-accent-hover);
+            transform: translateY(-2px);
+        }
+
+        .button:disabled {
+            background-color: var(--color-disabled);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 8px 15px;
+            border: 1px solid var(--color-border);
+            border-radius: 20px;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .radio-label input {
+            display: none;
+        }
+        
+        .radio-label.checked, .radio-label:hover {
+            background-color: var(--color-accent-light);
+            border-color: var(--color-accent);
+        }
+
+        .valores-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .resumen-container {
+            text-align: left;
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .resumen-container h4 {
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #1a2533;
+            border-bottom: 2px solid var(--color-accent-light);
+            padding-bottom: 5px;
+        }
+
+        .resumen-container p {
+            background-color: var(--color-input-bg);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 0;
+            word-wrap: break-word;
+        }
+        
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // ------------- COMPONENTE FASE 1 -------------
+        const Fase1_ConexionEmocional = ({ onNext, setRespuestas, respuestas }) => {
+            const handleChange = (e) => {
+                const { name, value } = e.target;
+                setRespuestas(prev => ({ ...prev, [name]: value }));
+            };
+            
+            const opcionesEmocion = ["Alivio", "Alegría", "Orgullo", "Libertad", "Seguridad", "Otra"];
+
+            return (
+                <React.Fragment>
+                    <h2 className="title">Un momento para conectar</h2>
+
+                    <h3 className="subtitle">Paso 1.1: Un momento de orgullo</h3>
+                    <p>Escribe sobre un momento en el que te sentiste orgulloso de ti mismo.</p>
+                    <textarea
+                        name="momentoOrgullo"
+                        value={respuestas.momentoOrgullo}
+                        onChange={handleChange}
+                        maxLength="200"
+                        className="styled-textarea"
+                    />
+                    <p className="char-counter">{respuestas.momentoOrgullo.length}/200</p>
+
+                    <h3 className="subtitle">Paso 1.2: ¿Qué te limita?, ¿qué pasó?</h3>
+                    <p>Describe un momento reciente de frustración.</p>
+                    <textarea
+                        name="frustracion"
+                        value={respuestas.frustracion}
+                        onChange={handleChange}
+                        maxLength="200"
+                        className="styled-textarea"
+                    />
+                    <p className="char-counter">{respuestas.frustracion.length}/200</p>
+                    
+                    <h3 className="subtitle">Paso 1.3: El poder del alivio</h3>
+                    <p>Si pudieras eliminar esa situación, ¿qué emoción sentirías primero?</p>
+                    <div className="radio-group">
+                        {opcionesEmocion.map(opcion => (
+                            <label key={opcion} className={`radio-label ${respuestas.emocionAlivio === opcion ? 'checked' : ''}`}>
+                                <input
+                                    type="radio"
+                                    name="emocionAlivio"
+                                    value={opcion}
+                                    checked={respuestas.emocionAlivio === opcion}
+                                    onChange={handleChange}
+                                />
+                                {opcion}
+                            </label>
+                        ))}
+                    </div>
+
+                    {respuestas.emocionAlivio === 'Otra' && (
+                        <input
+                            type="text"
+                            name="emocionOtra"
+                            placeholder="Escribe tu emoción aquí"
+                            value={respuestas.emocionOtra}
+                            onChange={handleChange}
+                            className="styled-input"
+                            style={{ marginTop: '10px' }}
+                        />
+                    )}
+
+                    <button onClick={onNext} className="button">Siguiente</button>
+                </React.Fragment>
+            );
+        };
+
+        // ------------- COMPONENTE FASE 2 -------------
+        const Fase2_IdentidadProposito = ({ onNext, setRespuestas, respuestas }) => {
+            const handleChange = (e) => {
+                const { name, value } = e.target;
+                setRespuestas(prev => ({ ...prev, [name]: value }));
+            };
+
+            return (
+                <React.Fragment>
+                    <h2 className="title">Identidad y Propósito</h2>
+                    
+                    <h3 className="subtitle">Paso 2.1: Tus valores</h3>
+                    <p>Identifica tres valores clave para ti. Puedes usar las sugerencias o escribir los tuyos.</p>
+                    <div className="valores-container">
+                        <input name="valor1" placeholder="Ej: Libertad" value={respuestas.valor1} onChange={handleChange} maxLength="20" className="styled-input" />
+                        <input name="valor2" placeholder="Ej: Seguridad" value={respuestas.valor2} onChange={handleChange} maxLength="20" className="styled-input" />
+                        <input name="valor3" placeholder="Ej: Aprendizaje" value={respuestas.valor3} onChange={handleChange} maxLength="20" className="styled-input" />
+                    </div>
+                    
+                    <h3 className="subtitle">Paso 2.2: El problema a resolver</h3>
+                    <p>Escribe una frase que resuma un problema de tu vida que te gustaría resolver.</p>
+                    <textarea
+                        name="problemaResolver"
+                        value={respuestas.problemaResolver}
+                        onChange={handleChange}
+                        maxLength="200"
+                        className="styled-textarea"
+                    />
+                    <p className="char-counter">{respuestas.problemaResolver.length}/200</p>
+                    
+                    <h3 className="subtitle">Paso 2.3: La vida después del cambio</h3>
+                    <p>Describe cómo sería tu vida si ese problema estuviera resuelto con una herramienta.</p>
+                    <textarea
+                        name="vidaDespuesCambio"
+                        value={respuestas.vidaDespuesCambio}
+                        onChange={handleChange}
+                        maxLength="200"
+                        className="styled-textarea"
+                    />
+                    <p className="char-counter">{respuestas.vidaDespuesCambio.length}/200</p>
+                    
+                    <button onClick={onNext} className="button">Siguiente</button>
+                </React.Fragment>
+            );
+        };
+
+        // ------------- COMPONENTE FASE 3 -------------
+        const Fase3_VisionAccion = ({ onNext, setRespuestas, respuestas }) => {
+            const handleChange = (e) => {
+                const { name, value } = e.target;
+                setRespuestas(prev => ({ ...prev, [name]: value }));
+            };
+
+            return (
+                <React.Fragment>
+                    <h2 className="title">Visión y Acción</h2>
+                    
+                    <h3 className="subtitle">Paso 3.1: Beneficiarios de tu cambio</h3>
+                    <p>¿Quién más se beneficiaría si resolvieras ese problema?</p>
+                    <textarea
+                        name="beneficiarios"
+                        value={respuestas.beneficiarios}
+                        onChange={handleChange}
+                        maxLength="200"
+                        className="styled-textarea"
+                    />
+                    <p className="char-counter">{respuestas.beneficiarios.length}/200</p>
+                    
+                    <h3 className="subtitle">Paso 3.2: Primer paso</h3>
+                    <p>¿Qué harías primero si tuvieras una herramienta o conocimiento nuevo para lograr ese cambio?</p>
+                    <textarea
+                        name="primerPaso"
+                        value={respuestas.primerPaso}
+                        onChange={handleChange}
+                        maxLength="200"
+                        className="styled-textarea"
+                    />
+                    <p className="char-counter">{respuestas.primerPaso.length}/200</p>
+                    
+                    <h3 className="subtitle">Paso 3.3: Tu idea o proyecto</h3>
+                    <p>Define una idea o proyecto que ya tengas en mente para lograr tu objetivo.</p>
+                    <textarea
+                        name="ideaProyecto"
+                        value={respuestas.ideaProyecto}
+                        onChange={handleChange}
+                        maxLength="200"
+                        className="styled-textarea"
+                    />
+                    <p className="char-counter">{respuestas.ideaProyecto.length}/200</p>
+                    
+                    <button onClick={onNext} className="button">Finalizar y ver resumen</button>
+                </React.Fragment>
+            );
+        };
+
+        // ------------- COMPONENTE RESUMEN FINAL -------------
+        const ResumenFinal = ({ respuestas }) => {
+            const formatContent = (format) => {
+                const { momentoOrgullo, frustracion, emocionAlivio, emocionOtra, valor1, valor2, valor3, problemaResolver, vidaDespuesCambio, beneficiarios, primerPaso, ideaProyecto } = respuestas;
+                
+                const emocionFinal = emocionAlivio === 'Otra' ? emocionOtra : emocionAlivio;
+                const valores = [valor1, valor2, valor3].filter(v => v).join(', ');
+
+                if (format === 'md') {
+                    return `# Mi Viaje de Autodescubrimiento\n\n## Fase 1: Conexión Emocional\n\n### Un momento de orgullo\n**${momentoOrgullo}**\n\n### Frustración reciente\n**${frustracion}**\n\n### Emoción que sentiría al resolverlo\n**${emocionFinal}**\n\n---\n\n## Fase 2: Identidad y Propósito\n\n### Mis tres valores clave\n- ${valor1 || 'No definido'}\n- ${valor2 || 'No definido'}\n- ${valor3 || 'No definido'}\n\n### El problema a resolver\n**${problemaResolver}**\n\n### Mi vida después del cambio\n**${vidaDespuesCambio}**\n\n---\n\n## Fase 3: Visión y Acción\n\n### ¿Quién más se beneficiaría?\n**${beneficiarios}**\n\n### Mi primer paso\n**${primerPaso}**\n\n### Mi idea o proyecto\n**${ideaProyecto}**`;
+                }
+
+                return `MI VIAJE DE AUTODESCUBRIMIENTO\n=============================\n\nFASE 1: CONEXIÓN EMOCIONAL\n--------------------------\nUn momento de orgullo:\n${momentoOrgullo}\n\nFrustración reciente:\n${frustracion}\n\nEmoción que sentiría al resolverlo:\n${emocionFinal}\n\n=============================\n\nFASE 2: IDENTIDAD Y PROPÓSITO\n-----------------------------\nMis tres valores clave: ${valores}\n\nEl problema a resolver:\n${problemaResolver}\n\nMi vida después del cambio:\n${vidaDespuesCambio}\n\n=============================\n\nFASE 3: VISIÓN Y ACCIÓN\n-----------------------\n¿Quién más se beneficiaría?:\n${beneficiarios}\n\nMi primer paso:\n${primerPaso}\n\nMi idea o proyecto:\n${ideaProyecto}`;
+            };
+
+            const downloadFile = (format) => {
+                const content = formatContent(format);
+                const filename = `mi-viaje-autodescubrimiento.${format}`;
+                const mimeType = format === 'md' ? 'text/markdown' : 'text/plain';
+                
+                const element = document.createElement('a');
+                const file = new Blob([content], { type: `${mimeType};charset=utf-8;` });
+                element.href = URL.createObjectURL(file);
+                element.download = filename;
+                document.body.appendChild(element);
+                element.click();
+                document.body.removeChild(element);
+            };
+
+            return (
+                <React.Fragment>
+                    <h2 className="title">Resumen de Tu Viaje</h2>
+                    <div className="resumen-container">
+                        <h4>Un momento de orgullo</h4>
+                        <p>{respuestas.momentoOrgullo || 'No has respondido.'}</p>
+                        
+                        <h4>Frustración reciente</h4>
+                        <p>{respuestas.frustracion || 'No has respondido.'}</p>
+
+                        <h4>Emoción al resolver la situación</h4>
+                        <p>{respuestas.emocionAlivio === 'Otra' ? respuestas.emocionOtra : respuestas.emocionAlivio || 'No has respondido.'}</p>
+                        
+                        <h4>Tus valores</h4>
+                        <p>{[respuestas.valor1, respuestas.valor2, respuestas.valor3].filter(v => v).join(', ') || 'No has definido valores.'}</p>
+                        
+                        <h4>El problema a resolver</h4>
+                        <p>{respuestas.problemaResolver || 'No has respondido.'}</p>
+
+                        <h4>La vida después del cambio</h4>
+                        <p>{respuestas.vidaDespuesCambio || 'No has respondido.'}</p>
+
+                        <h4>Beneficiarios de tu cambio</h4>
+                        <p>{respuestas.beneficiarios || 'No has respondido.'}</p>
+
+                        <h4>Primer paso</h4>
+                        <p>{respuestas.primerPaso || 'No has respondido.'}</p>
+                        
+                        <h4>Tu idea o proyecto</h4>
+                        <p>{respuestas.ideaProyecto || 'No has respondido.'}</p>
+                    </div>
+                    <div className="button-container">
+                        <button onClick={() => downloadFile('txt')} className="button">Exportar a .txt</button>
+                        <button onClick={() => downloadFile('md')} className="button">Exportar a .md</button>
+                    </div>
+                </React.Fragment>
+            );
+        };
+        
+        // ------------- COMPONENTE PRINCIPAL APP -------------
+        const App = () => {
+            const [fase, setFase] = useState(1);
+            const [respuestas, setRespuestas] = useState({
+                momentoOrgullo: '', frustracion: '', emocionAlivio: '', emocionOtra: '',
+                valor1: '', valor2: '', valor3: '',
+                problemaResolver: '', vidaDespuesCambio: '',
+                beneficiarios: '', primerPaso: '', ideaProyecto: '',
+            });
+
+            const handleNext = () => setFase(fase + 1);
+
+            const renderFase = () => {
+                switch (fase) {
+                    case 1:
+                        return <Fase1_ConexionEmocional onNext={handleNext} setRespuestas={setRespuestas} respuestas={respuestas} />;
+                    case 2:
+                        return <Fase2_IdentidadProposito onNext={handleNext} setRespuestas={setRespuestas} respuestas={respuestas} />;
+                    case 3:
+                        return <Fase3_VisionAccion onNext={handleNext} setRespuestas={setRespuestas} respuestas={respuestas} />;
+                    case 4:
+                        return <ResumenFinal respuestas={respuestas} />;
+                    default:
+                        return <div>Fase desconocida</div>;
+                }
+            };
+
+            return (
+                <div className="app-container">
+                    {renderFase()}
+                </div>
+            );
+        };
+        
+        // ------------- RENDERIZADO DE LA APP -------------
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+
+    </script>
+</body>
+</html>
